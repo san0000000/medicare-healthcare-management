@@ -1,6 +1,6 @@
 
 package com.medicare.service;
-
+import com.medicare.exception.DoctorNotFoundException;
 import com.medicare.model.Doctor;
 import com.medicare.repository.DoctorRepository;
 import org.springframework.stereotype.Service;
@@ -21,8 +21,13 @@ public class DoctorService {
     }
 
     public Doctor getDoctorById(Long id) {
-        return doctorRepository.findById(id).orElse(null);
-    }
+    return doctorRepository.findById(id)
+            .orElseThrow(() ->
+                    new DoctorNotFoundException(
+                            "Doctor not found with ID: " + id
+                    )
+            );
+}
 
     public Doctor saveDoctor(Doctor doctor) {
         return doctorRepository.save(doctor);

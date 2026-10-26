@@ -26,17 +26,10 @@ public class DoctorController {
 
     // 2. Get doctor by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Doctor> getDoctorById(
-            @PathVariable Long id) {
-
-        Doctor doctor = doctorService.getDoctorById(id);
-
-        if (doctor == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(doctor);
-    }
+public ResponseEntity<Doctor> getDoctorById(@PathVariable Long id) {
+    Doctor doctor = doctorService.getDoctorById(id);
+    return ResponseEntity.ok(doctor);
+}
 
     // 3. Add a new doctor
     @PostMapping
@@ -50,36 +43,25 @@ public class DoctorController {
 
     // 4. Update an existing doctor
     @PutMapping("/{id}")
-    public ResponseEntity<Doctor> updateDoctor(
-            @PathVariable Long id,
-            @Valid @RequestBody Doctor updatedDoctor) {
+public ResponseEntity<Doctor> updateDoctor(
+        @PathVariable Long id,
+        @Valid @RequestBody Doctor updatedDoctor) {
 
-        Doctor existingDoctor = doctorService.getDoctorById(id);
+    Doctor existingDoctor = doctorService.getDoctorById(id);
 
-        if (existingDoctor == null) {
-            return ResponseEntity.notFound().build();
-        }
+    updatedDoctor.setId(id);
+    Doctor savedDoctor = doctorService.saveDoctor(updatedDoctor);
 
-        updatedDoctor.setId(id);
-
-        Doctor savedDoctor = doctorService.saveDoctor(updatedDoctor);
-
-        return ResponseEntity.ok(savedDoctor);
-    }
+    return ResponseEntity.ok(savedDoctor);
+}
 
     // 5. Delete a doctor
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDoctor(
-            @PathVariable Long id) {
+public ResponseEntity<Void> deleteDoctor(@PathVariable Long id) {
 
-        Doctor existingDoctor = doctorService.getDoctorById(id);
+    doctorService.getDoctorById(id);
+    doctorService.deleteDoctor(id);
 
-        if (existingDoctor == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        doctorService.deleteDoctor(id);
-
-        return ResponseEntity.noContent().build();
-    }
+    return ResponseEntity.noContent().build();
+}
 }
