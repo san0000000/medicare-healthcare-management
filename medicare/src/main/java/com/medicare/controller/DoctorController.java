@@ -2,37 +2,34 @@
 package com.medicare.controller;
 
 import com.medicare.model.Doctor;
-import org.springframework.http.HttpStatus;
+import com.medicare.service.DoctorService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/doctors")
 public class DoctorController {
 
-    private final Map<Long, Doctor> doctors = new LinkedHashMap<>();
-    private Long nextId = 1L;
+    private final DoctorService doctorService;
 
-    // READ: Get all doctors
-    @GetMapping
-    public ResponseEntity<List<Doctor>> getAllDoctors() {
-
-        return ResponseEntity.ok(
-            new ArrayList<>(doctors.values())
-        );
+    public DoctorController(DoctorService doctorService) {
+        this.doctorService = doctorService;
     }
 
-    // READ: Get one doctor by ID
+    // 1. Get all doctors
+    @GetMapping
+    public List<Doctor> getAllDoctors() {
+        return doctorService.getAllDoctors();
+    }
+
+    // 2. Get doctor by ID
     @GetMapping("/{id}")
     public ResponseEntity<Doctor> getDoctorById(
             @PathVariable Long id) {
 
-        Doctor doctor = doctors.get(id);
+        Doctor doctor = doctorService.getDoctorById(id);
 
         if (doctor == null) {
             return ResponseEntity.notFound().build();
@@ -41,46 +38,47 @@ public class DoctorController {
         return ResponseEntity.ok(doctor);
     }
 
-    // CREATE: Add a doctor
+    // 3. Add a new doctor
     @PostMapping
-    public ResponseEntity<Doctor> addDoctor(
-            @RequestBody Doctor doctor) {
+    public ResponseEntity<Doctor> createDoctor(
+          @Valid  @RequestBody Doctor doctor) {
 
-        doctor.setId(nextId);
-        doctors.put(nextId, doctor);
-        nextId++;
+        Doctor savedDoctor = doctorService.saveDoctor(doctor);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(doctor);
+        return ResponseEntity.status(201).body(savedDoctor);
     }
 
-    // UPDATE: Update a doctor
+    // 4. Update an existing doctor
     @PutMapping("/{id}")
     public ResponseEntity<Doctor> updateDoctor(
             @PathVariable Long id,
-            @RequestBody Doctor updatedDoctor) {
+            @Valid @RequestBody Doctor updatedDoctor) {
 
-        if (!doctors.containsKey(id)) {
+        Doctor existingDoctor = doctorService.getDoctorById(id);
+
+        if (existingDoctor == null) {
             return ResponseEntity.notFound().build();
         }
 
         updatedDoctor.setId(id);
-        doctors.put(id, updatedDoctor);
 
-        return ResponseEntity.ok(updatedDoctor);
+        Doctor savedDoctor = doctorService.saveDoctor(updatedDoctor);
+
+        return ResponseEntity.ok(savedDoctor);
     }
 
-    // DELETE: Remove a doctor
+    // 5. Delete a doctor
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDoctor(
             @PathVariable Long id) {
 
-        if (!doctors.containsKey(id)) {
+        Doctor existingDoctor = doctorService.getDoctorById(id);
+
+        if (existingDoctor == null) {
             return ResponseEntity.notFound().build();
         }
 
-        doctors.remove(id);
+        doctorService.deleteDoctor(id);
 
         return ResponseEntity.noContent().build();
     }
